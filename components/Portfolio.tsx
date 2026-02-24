@@ -89,14 +89,11 @@ export default function Portfolio() {
             if (newCount === totalSections)
                 new Audio("/audio/chime.mp3").play().catch(() => {});
         }
-    }, []);
+    }, [totalSections]);
 
     const hideHint = useCallback(() => setShowHint(false), []);
 
-    const onLoadProgress = useCallback(
-        (_loaded: number, _total: number) => {},
-        [],
-    );
+    const onLoadProgress = useCallback(() => {}, []);
 
     const onReady = useCallback(() => setGameReady(true), []);
 

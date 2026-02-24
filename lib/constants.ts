@@ -16,11 +16,11 @@ export const HITBOX_HEIGHT_RATIO = 0.55;
 export const BOUNCE_DAMPING = 0.65;
 
 export const TULIP_SRCS: Record<string, string> = {
-    about: "/icons/flowers/tulip-pink.png",
-    experience: "/icons/flowers/tulip-violet.png",
-    projects: "/icons/flowers/tulip-purple.png",
-    education: "/icons/flowers/tulip-yellow.png",
-    contact: "/icons/flowers/tulip-red.png",
+    about: "/icons/flowers/tulip-pink.webp",
+    experience: "/icons/flowers/tulip-violet.webp",
+    projects: "/icons/flowers/tulip-purple.webp",
+    education: "/icons/flowers/tulip-yellow.webp",
+    contact: "/icons/flowers/tulip-red.webp",
 };
 
 export const Z = {

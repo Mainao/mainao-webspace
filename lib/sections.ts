@@ -9,7 +9,7 @@ export const SECTION_DEFS: Omit<Section, "visited">[] = [
         content: {
             title: "Intro",
             body: [
-                "Hi, I’m Mainao — a Senior Frontend Engineer with 8 years of experience building web applications. I’ve worked on large-scale enterprise products, crafting clean and scalable UIs with React and TypeScript. I’m always learning, building, and exploring along the way.",
+                "Hi, I’m Mainao — a Senior Software Engineer focused on frontend development with 8 years of experience building modern web applications. I’ve worked on large-scale enterprise products, crafting clean, scalable UIs using React, Next.js, TypeScript, and modern frontend tools. I’m always learning, building, and exploring along the way.",
             ],
         },
     },
@@ -71,7 +71,10 @@ export const SECTION_DEFS: Omit<Section, "visited">[] = [
         content: {
             title: "Contact",
             body: [
-                { text: "mainao1230@gmail.com", url: "mailto:mainao1230@gmail.com" },
+                {
+                    text: "mainao1230@gmail.com",
+                    url: "mailto:mainao1230@gmail.com",
+                },
                 { text: "github.com/Mainao", url: "https://github.com/Mainao" },
                 {
                     text: "linkedin.com/in/mainao-baro",

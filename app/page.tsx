@@ -1,3 +1,5 @@
+import Portfolio from "@/components/Portfolio";
+
 export default function Home() {
-    return <p>Hello, World!</p>;
+    return <Portfolio />;
 }

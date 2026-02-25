@@ -43,7 +43,17 @@ export default function Modal({
             previousActiveElement.current = document.activeElement;
 
             setTimeout(() => {
-                contentRef.current?.focus();
+                if (contentRef.current) {
+                    const firstFocusable =
+                        contentRef.current.querySelector<HTMLElement>(
+                            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+                        );
+                    if (firstFocusable) {
+                        firstFocusable.focus();
+                    } else {
+                        contentRef.current.focus();
+                    }
+                }
             }, 0);
         } else {
             (previousActiveElement.current as HTMLElement | null)?.focus();
@@ -69,10 +79,10 @@ export default function Modal({
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 flex items-center justify-center z-9999">
+        <div className="fixed inset-0 flex items-start sm:items-center justify-center z-9999">
             <div
                 ref={overlayRef}
-                className="absolute inset-0 w-full h-full bg-black/20 z-10 modal-overlay"
+                className="hidden sm:block absolute inset-0 w-full h-full bg-black/20 z-10 modal-overlay"
                 onClick={handleClose}
                 aria-hidden="true"
             />
@@ -82,7 +92,7 @@ export default function Modal({
                 aria-modal="true"
                 aria-labelledby={titleId}
                 tabIndex={-1}
-                className="relative bg-[#f5f1e8] p-8 max-w-lg w-full border-2 border-[#171717] shadow-[6px_6px_0_#171717] z-9999 focus:outline-none"
+                className="relative bg-[#f5f1e8] p-6 sm:p-8 w-full sm:max-w-lg h-full sm:h-auto overflow-y-auto sm:border-2 sm:border-[#171717] sm:shadow-[6px_6px_0_#171717] z-9999 focus:outline-none"
             >
                 <button
                     onClick={handleClose}

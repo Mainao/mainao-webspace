@@ -124,13 +124,13 @@ export default function Portfolio() {
             />
 
             <div
-                className="absolute top-32 left-1/2 -translate-x-1/2 text-center pointer-events-none"
+                className="absolute top-[calc(50vh-140px)] sm:top-32 left-0 right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 text-center pointer-events-none px-24 sm:px-0"
                 style={{ zIndex: Z.hud }}
             >
-                <h1 className="font-(--font-pixelify-sans) text-5xl md:text-7xl text-[#2d2d2d] select-none tracking-wide">
+                <h1 className="font-(--font-pixelify-sans) text-2xl sm:text-5xl md:text-7xl text-[#2d2d2d] select-none tracking-wide">
                     Hi! I&apos;m Mainao
                 </h1>
-                <p className="mt-2 text-lg md:text-xl text-[#555] select-none font-mono-stm">
+                <p className="mt-1 sm:mt-2 text-sm sm:text-lg md:text-xl text-[#555] select-none font-mono-stm">
                     Welcome to my cute space on the internet :)
                 </p>
             </div>
@@ -265,7 +265,7 @@ export default function Portfolio() {
 
             {showHint && (
                 <div
-                    className="absolute bottom-24 inset-x-0 flex justify-center pointer-events-none"
+                    className="absolute bottom-24 inset-x-0 hidden sm:flex justify-center pointer-events-none"
                     style={{ zIndex: Z.hud }}
                 >
                     <div className="bg-black/60 text-white font-mono-stm text-md px-4 py-2 rounded-lg text-center">
@@ -276,7 +276,7 @@ export default function Portfolio() {
             )}
 
             <div
-                className="absolute bottom-4 right-4 flex flex-col items-center cursor-pointer"
+                className="absolute bottom-4 right-4 hidden sm:flex flex-col items-center cursor-pointer"
                 style={{ zIndex: Z.hud }}
                 onClick={() => {
                     if (!frogDancing) {
@@ -319,10 +319,10 @@ export default function Portfolio() {
                         © 2026 Mainao · made with{" "}
                         <span className="text-[#e85d5d]">♥</span>
                     </span>
-                    <span className="text-[#aaa]">|</span>
+                    <span className="hidden sm:inline text-[#aaa]">|</span>
                     <Link
                         href="/instructions"
-                        className="pointer-events-auto font-mono-stm text-xs text-[#e85d5d] hover:underline transition-colors"
+                        className="hidden sm:inline pointer-events-auto font-mono-stm text-xs text-[#e85d5d] hover:underline transition-colors"
                     >
                         instructions
                     </Link>
@@ -330,7 +330,7 @@ export default function Portfolio() {
             </div>
 
             <div
-                className="absolute bottom-6 left-6 flex gap-3 sm:hidden select-none"
+                className="absolute bottom-6 left-6 flex gap-3 hidden select-none"
                 style={{ zIndex: Z.controls }}
             >
                 <button
@@ -369,7 +369,7 @@ export default function Portfolio() {
                 </button>
             </div>
             <div
-                className="absolute bottom-6 right-6 sm:hidden select-none"
+                className="absolute bottom-32 right-4 hidden select-none"
                 style={{ zIndex: Z.controls }}
             >
                 <button

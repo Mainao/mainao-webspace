@@ -24,16 +24,18 @@ function drawTulip(
     sx: number,
     sy: number,
     img: HTMLImageElement | undefined,
+    tW: number,
+    tH: number,
 ) {
     if (img?.complete && img.naturalWidth > 0) {
-        ctx.drawImage(img, sx, sy, TULIP_W, TULIP_H);
+        ctx.drawImage(img, sx, sy, tW, tH);
     }
 
     ctx.fillStyle = "#444";
-    ctx.font = `${sec.visited ? "bold " : ""}12px Pixelify_Sans, monospace`;
+    ctx.font = `${sec.visited ? "bold " : ""}${tW <= 56 ? "10" : "12"}px Pixelify_Sans, monospace`;
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    ctx.fillText(sec.label, sx + TULIP_W / 2, sy + TULIP_H + 6);
+    ctx.fillText(sec.label, sx + tW / 2, sy + tH + 4);
 }
 
 function drawGround(ctx: CanvasRenderingContext2D, groundY: number) {
@@ -186,17 +188,39 @@ export default function GameWorld({
         };
         window.addEventListener("resize", onResize);
 
-        function getBoxScreenPositions(): { sx: number; sy: number }[] {
-            const n = sections.length;
-            const baseY = (ch - TULIP_H) / 2;
+        function getBoxScreenPositions(): { sx: number; sy: number; tW: number; tH: number }[] {
+            const isMobile = cw < 640;
+
+            if (isMobile) {
+                const tW = 56, tH = 56, gap = 10, slot = 66;
+                const rowGap = 24;
+                const row1Count = 3, row2Count = sections.length - 3;
+                const row1W = row1Count * slot - gap;
+                const row2W = row2Count * slot - gap;
+                const groundY = ch * (1 - GROUND_FRAC);
+                const midY = ch / 2;
+                const row1Y = midY - tH - rowGap / 2;
+                const row2Y = midY + rowGap / 2;
+
+                return sections.map((_, i) => {
+                    if (i < 3) {
+                        return { sx: (cw - row1W) / 2 + i * slot, sy: row1Y, tW, tH };
+                    } else {
+                        return { sx: (cw - row2W) / 2 + (i - 3) * slot, sy: row2Y, tW, tH };
+                    }
+                });
+            }
+
             const gap = 30;
             const slot = TULIP_W + gap;
-            const totalW = TULIP_W + (n - 1) * slot;
+            const totalW = TULIP_W + (sections.length - 1) * slot;
             const startX = (cw - totalW) / 2;
-
+            const baseY = (ch - TULIP_H) / 2;
             return sections.map((_, i) => ({
                 sx: startX + i * slot,
                 sy: baseY,
+                tW: TULIP_W,
+                tH: TULIP_H,
             }));
         }
 
@@ -235,15 +259,15 @@ export default function GameWorld({
 
             for (let i = 0; i < sections.length; i++) {
                 const sec = sections[i];
-                const { sx, sy } = positions[i];
+                const { sx, sy, tW, tH } = positions[i];
 
                 if ((cooldowns[sec.id] ?? 0) > 0) continue;
 
                 if (
                     cx2 > sx &&
-                    cx1 < sx + sec.w &&
+                    cx1 < sx + tW &&
                     cy2 > sy &&
-                    cy1 < sy + sec.h
+                    cy1 < sy + tH
                 ) {
                     onSectionHit(sec.id);
                     cooldowns[sec.id] = HIT_COOLDOWN;
@@ -261,31 +285,55 @@ export default function GameWorld({
             ctx.clearRect(0, 0, cw, ch);
 
             for (let i = 0; i < sections.length; i++) {
-                const { sx, sy } = positions[i];
-                drawTulip(ctx, sections[i], sx, sy, tulipImgs[sections[i].id]);
+                const { sx, sy, tW, tH } = positions[i];
+                drawTulip(ctx, sections[i], sx, sy, tulipImgs[sections[i].id], tW, tH);
             }
 
             drawGround(ctx, groundY);
 
-            let frames = idleFrames;
-            if (!onGround) frames = jumpFrames;
-            else if (keys.left || keys.right) frames = walkFrames;
+            if (cw >= 640) {
+                let frames = idleFrames;
+                if (!onGround) frames = jumpFrames;
+                else if (keys.left || keys.right) frames = walkFrames;
 
-            const img = frames[animFrame % frames.length];
-            if (img?.complete && img.naturalWidth > 0) {
-                ctx.save();
-                if (!facingRight) {
-                    ctx.translate(charX + CHAR_W, 0);
-                    ctx.scale(-1, 1);
-                    ctx.drawImage(img, 0, charY, CHAR_W, CHAR_H);
-                } else {
-                    ctx.drawImage(img, charX, charY, CHAR_W, CHAR_H);
+                const img = frames[animFrame % frames.length];
+                if (img?.complete && img.naturalWidth > 0) {
+                    ctx.save();
+                    if (!facingRight) {
+                        ctx.translate(charX + CHAR_W, 0);
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(img, 0, charY, CHAR_W, CHAR_H);
+                    } else {
+                        ctx.drawImage(img, charX, charY, CHAR_W, CHAR_H);
+                    }
+                    ctx.restore();
                 }
-                ctx.restore();
             }
 
             rafId = requestAnimationFrame(tick);
         }
+
+        const handleTap = (e: MouseEvent) => {
+            if (cw >= 640) return;
+            const rect = canvas.getBoundingClientRect();
+            const tapX = e.clientX - rect.left;
+            const tapY = e.clientY - rect.top;
+            const pad = 10;
+            const positions = getBoxScreenPositions();
+            for (let i = 0; i < sections.length; i++) {
+                const { sx, sy, tW, tH } = positions[i];
+                if (
+                    tapX >= sx - pad &&
+                    tapX <= sx + tW + pad &&
+                    tapY >= sy - pad &&
+                    tapY <= sy + tH + pad
+                ) {
+                    onSectionHit(sections[i].id);
+                    break;
+                }
+            }
+        };
+        canvas.addEventListener("click", handleTap);
 
         const allImgs = [...idleFrames, ...walkFrames, ...jumpFrames];
         const total = allImgs.length;
@@ -311,13 +359,14 @@ export default function GameWorld({
             window.removeEventListener("keydown", onKeyDown);
             window.removeEventListener("keyup", onKeyUp);
             window.removeEventListener("resize", onResize);
+            canvas.removeEventListener("click", handleTap);
         };
     }, [sections, onSectionHit, onMove, controlsRef, onLoadProgress, onReady]);
 
     return (
         <canvas
             ref={canvasRef}
-            className="fixed inset-0 pointer-events-none outline-none"
+            className="fixed inset-0 outline-none"
             style={{ zIndex: 10 }}
             tabIndex={-1}
             role="img"

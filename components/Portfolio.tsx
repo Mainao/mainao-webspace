@@ -125,7 +125,7 @@ export default function Portfolio() {
             />
 
             <div
-                className="absolute top-[calc(50vh-190px)] sm:top-32 left-0 right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 text-center pointer-events-none px-20 sm:px-0"
+                className="absolute top-[calc(50vh-210px)] sm:top-32 left-0 right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 text-center pointer-events-none px-20 sm:px-0"
                 style={{ zIndex: Z.hud }}
             >
                 <h1 className="font-(--font-pixelify-sans) text-3xl sm:text-5xl md:text-7xl text-[#2d2d2d] select-none tracking-wide">

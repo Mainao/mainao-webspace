@@ -125,13 +125,13 @@ export default function Portfolio() {
             />
 
             <div
-                className="absolute top-[calc(50vh-165px)] sm:top-32 left-0 right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 text-center pointer-events-none px-24 sm:px-0"
+                className="absolute top-[calc(50vh-190px)] sm:top-32 left-0 right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 text-center pointer-events-none px-20 sm:px-0"
                 style={{ zIndex: Z.hud }}
             >
-                <h1 className="font-(--font-pixelify-sans) text-2xl sm:text-5xl md:text-7xl text-[#2d2d2d] select-none tracking-wide">
+                <h1 className="font-(--font-pixelify-sans) text-3xl sm:text-5xl md:text-7xl text-[#2d2d2d] select-none tracking-wide">
                     Hi! I&apos;m Mainao
                 </h1>
-                <p className="mt-1 sm:mt-2 text-sm sm:text-lg md:text-xl text-[#555] select-none font-mono-stm">
+                <p className="mt-2 sm:mt-2 text-base sm:text-lg md:text-xl text-[#555] select-none font-mono-stm">
                     Welcome to my cute space on the internet :)
                 </p>
             </div>
@@ -430,7 +430,7 @@ export default function Portfolio() {
                     style={{ zIndex: Z.modal }}
                 >
                     <p className="font-mono-stm text-xs leading-snug">
-                        ✨ This website is best experienced on desktop.
+                        ✨ Please view this website on a desktop for a gamified experience.
                     </p>
                     <button
                         onClick={() => setShowDesktopBanner(false)}

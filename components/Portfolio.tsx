@@ -26,6 +26,7 @@ export default function Portfolio() {
     const [frogDancing, setFrogDancing] = useState(false);
     const [showFlowerQuote, setShowFlowerQuote] = useState(false);
     const [soundOn, setSoundOn] = useState(true);
+    const [showDesktopBanner, setShowDesktopBanner] = useState(true);
     const soundOnRef = useRef(true);
     const chillAudioRef = useRef<HTMLAudioElement | null>(null);
     const totalSections = SECTION_DEFS.length;
@@ -124,7 +125,7 @@ export default function Portfolio() {
             />
 
             <div
-                className="absolute top-[calc(50vh-140px)] sm:top-32 left-0 right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 text-center pointer-events-none px-24 sm:px-0"
+                className="absolute top-[calc(50vh-165px)] sm:top-32 left-0 right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 text-center pointer-events-none px-24 sm:px-0"
                 style={{ zIndex: Z.hud }}
             >
                 <h1 className="font-(--font-pixelify-sans) text-2xl sm:text-5xl md:text-7xl text-[#2d2d2d] select-none tracking-wide">
@@ -311,7 +312,7 @@ export default function Portfolio() {
             </div>
 
             <div
-                className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-none"
+                className="fixed bottom-4 left-1/2 -translate-x-1/2 pointer-events-none"
                 style={{ zIndex: Z.hud }}
             >
                 <div className="flex items-center gap-2">
@@ -420,6 +421,24 @@ export default function Portfolio() {
                         Loading
                         <span className="animate-blink">...</span>
                     </p>
+                </div>
+            )}
+
+            {showDesktopBanner && (
+                <div
+                    className="fixed bottom-0 left-0 right-0 sm:hidden flex items-center justify-between gap-2 bg-[#171717] text-[#f5f1e8] px-4 py-3"
+                    style={{ zIndex: Z.modal }}
+                >
+                    <p className="font-mono-stm text-xs leading-snug">
+                        ✨ This website is best experienced on desktop.
+                    </p>
+                    <button
+                        onClick={() => setShowDesktopBanner(false)}
+                        className="shrink-0 font-mono-stm text-xs text-[#aaa] hover:text-[#f5f1e8] transition-colors cursor-pointer"
+                        aria-label="Dismiss banner"
+                    >
+                        [ close ]
+                    </button>
                 </div>
             )}
         </main>

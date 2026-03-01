@@ -272,6 +272,7 @@ export default function Portfolio() {
                     <div className="bg-black/60 text-white font-mono-stm text-md px-4 py-2 rounded-lg text-center">
                         <p>← → to move &nbsp;·&nbsp; ↑ or Space to jump</p>
                         <p>Jump into the flowers to open the sections!</p>
+                        <p className="mt-1 text-white/60 text-sm">Visit all sections to unlock the magic flower at the top right ✨</p>
                     </div>
                 </div>
             )}

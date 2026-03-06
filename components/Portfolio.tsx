@@ -431,7 +431,7 @@ export default function Portfolio() {
                     style={{ zIndex: Z.modal }}
                 >
                     <p className="font-mono-stm text-xs leading-snug">
-                        ✨ Please view this website on a desktop for a gamified experience.
+                        psst... the real fun happens on desktop
                     </p>
                     <button
                         onClick={() => setShowDesktopBanner(false)}

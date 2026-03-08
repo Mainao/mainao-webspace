@@ -128,10 +128,10 @@ export default function Portfolio() {
                 className="absolute top-[calc(50vh-210px)] sm:top-32 left-0 right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 text-center pointer-events-none px-20 sm:px-0"
                 style={{ zIndex: Z.hud }}
             >
-                <h1 className="font-(--font-pixelify-sans) text-3xl sm:text-5xl md:text-7xl text-[#2d2d2d] select-none tracking-wide">
+                <h1 className="font-(--font-pixelify-sans) text-3xl sm:text-5xl md:text-7xl text-[#2d2d2d] select-none tracking-widest">
                     Hi! I&apos;m Mainao
                 </h1>
-                <p className="mt-2 sm:mt-2 text-base sm:text-lg md:text-xl text-[#555] select-none font-mono-stm">
+                <p className="mt-2 sm:mt-2 text-base sm:text-lg md:text-xl text-[#555] select-none font-mono-stm tracking-widest">
                     Welcome to my cute space on the internet :)
                 </p>
             </div>

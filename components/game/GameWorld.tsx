@@ -211,7 +211,7 @@ export default function GameWorld({
                 });
             }
 
-            const gap = 30;
+            const gap = 52;
             const slot = TULIP_W + gap;
             const totalW = TULIP_W + (sections.length - 1) * slot;
             const startX = (cw - totalW) / 2;
@@ -263,11 +263,12 @@ export default function GameWorld({
 
                 if ((cooldowns[sec.id] ?? 0) > 0) continue;
 
+                const tulipCenterX = sx + tW / 2;
                 if (
-                    cx2 > sx &&
-                    cx1 < sx + tW &&
-                    cy2 > sy &&
-                    cy1 < sy + tH
+                    cx1 < tulipCenterX &&
+                    cx2 > tulipCenterX &&
+                    cy1 < sy + tH &&
+                    cy1 > sy
                 ) {
                     onSectionHit(sec.id);
                     cooldowns[sec.id] = HIT_COOLDOWN;

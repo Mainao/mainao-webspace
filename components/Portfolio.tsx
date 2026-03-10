@@ -2,13 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import GameWorld from "./game/GameWorld";
 import ModalContent from "./ui/ModalContent";
 import { SECTION_DEFS } from "@/lib/sections";
 import { Z } from "@/lib/constants";
 import type { Section, GameControls } from "@/lib/types";
 import Modal from "./ui/Modal";
+import MenuModalContent from "./ui/MenuModalContent";
+import ScatteredDoodles from "./ui/ScatteredDoodles";
+import TypewriterHint from "./ui/TypewriterHint";
+import RewardTypewriter from "./ui/RewardTypewriter";
 
 export default function Portfolio() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -21,10 +24,11 @@ export default function Portfolio() {
 
     const [modal, setModal] = useState<Section | null>(null);
     const [visitedCount, setVisitedCount] = useState(0);
-    const [showHint, setShowHint] = useState(true);
     const [gameReady, setGameReady] = useState(false);
+    const [showMenu, setShowMenu] = useState(false);
+    const [showTypewriterHint, setShowTypewriterHint] = useState(false);
     const [frogDancing, setFrogDancing] = useState(false);
-    const [showFlowerQuote, setShowFlowerQuote] = useState(false);
+    const frogDancingRef = useRef(false);
     const [soundOn, setSoundOn] = useState(true);
     const [showDesktopBanner, setShowDesktopBanner] = useState(true);
     const soundOnRef = useRef(true);
@@ -68,7 +72,18 @@ export default function Portfolio() {
         return () => window.removeEventListener("resize", resize);
     }, []);
 
-    // ── Cleanup chill audio on unmount ──
+    useEffect(() => { frogDancingRef.current = frogDancing; }, [frogDancing]);
+
+    useEffect(() => {
+        if (visitedCount === totalSections && !frogDancingRef.current) {
+            const audio = new Audio("/audio/chill.mp3");
+            audio.loop = true;
+            audio.play().catch(() => {});
+            chillAudioRef.current = audio;
+            setTimeout(() => setFrogDancing(true), 0);
+        }
+    }, [visitedCount, totalSections]);
+
     useEffect(() => {
         return () => {
             if (chillAudioRef.current) {
@@ -92,16 +107,13 @@ export default function Portfolio() {
         }
     }, [totalSections]);
 
-    const hideHint = useCallback(() => setShowHint(false), []);
+    const hideHint = useCallback(() => {}, []);
 
     const onLoadProgress = useCallback(() => {}, []);
 
-    const onReady = useCallback(() => setGameReady(true), []);
-
-    const closeFlowerQuote = useCallback(() => {
-        if (soundOnRef.current)
-            new Audio("/audio/click-close.mp3").play().catch(() => {});
-        setShowFlowerQuote(false);
+    const onReady = useCallback(() => {
+        setGameReady(true);
+        setShowTypewriterHint(true);
     }, []);
 
     const closeModal = useCallback(() => {
@@ -110,11 +122,46 @@ export default function Portfolio() {
         setModal(null);
     }, []);
 
+    const handleSoundToggle = useCallback(() => {
+        if (!frogDancing) {
+            const audio = new Audio("/audio/chill.mp3");
+            audio.loop = true;
+            audio.muted = !soundOnRef.current;
+            audio.play().catch(() => {});
+            chillAudioRef.current = audio;
+        } else {
+            if (chillAudioRef.current) {
+                chillAudioRef.current.pause();
+                chillAudioRef.current.currentTime = 0;
+                chillAudioRef.current = null;
+            }
+        }
+        setFrogDancing((v) => !v);
+    }, [frogDancing]);
+
+    const handleSfxToggle = useCallback(() => {
+        const next = !soundOn;
+        soundOnRef.current = next;
+        setSoundOn(next);
+        if (chillAudioRef.current) {
+            chillAudioRef.current.muted = !next;
+        }
+    }, [soundOn]);
+
     useEffect(() => {
-        controlsRef.current?.setPaused(!!modal);
+        controlsRef.current?.setPaused(!!modal || showMenu);
         if (modal && soundOnRef.current)
             new Audio("/audio/click-open.mp3").play().catch(() => {});
-    }, [modal]);
+    }, [modal, showMenu]);
+
+    useEffect(() => {
+        if (!modal) return;
+        const handleEnter = (e: KeyboardEvent) => {
+            if (e.key === "Enter") closeModal();
+        };
+        document.addEventListener("keydown", handleEnter);
+        return () => document.removeEventListener("keydown", handleEnter);
+    }, [modal, closeModal]);
 
     return (
         <main className="relative w-screen h-screen overflow-hidden">
@@ -123,6 +170,14 @@ export default function Portfolio() {
                 className="absolute inset-0 w-full h-full"
                 style={{ zIndex: Z.background }}
             />
+
+            <ScatteredDoodles allVisited={visitedCount === totalSections} />
+
+            {showTypewriterHint && visitedCount < totalSections && (
+                <TypewriterHint onDone={() => setShowTypewriterHint(false)} />
+            )}
+
+            {visitedCount === totalSections && <RewardTypewriter />}
 
             <div
                 className="absolute top-[calc(50vh-210px)] sm:top-32 left-0 right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 text-center pointer-events-none px-20 sm:px-0"
@@ -152,106 +207,15 @@ export default function Portfolio() {
                 className="absolute top-4 right-4 h-20 flex items-center gap-3"
                 style={{ zIndex: Z.hud }}
             >
-                <div className="pointer-events-none">
-                    {visitedCount !== totalSections && (
-                        <div className="group relative pointer-events-auto">
-                            <Image
-                                src="/icons/flowers/magic-flower.webp"
-                                alt="Locked magic flower"
-                                width={40}
-                                height={40}
-                                className="opacity-50 grayscale"
-                            />
-                            <div className="absolute right-0 top-12 w-52 bg-[#f5f1e8] border-2 border-[#171717] shadow-[4px_4px_0_#171717] p-3 hidden group-hover:block">
-                                <p className="font-pixel text-md text-[#e85d5d] mb-1">
-                                    🔒 locked
-                                </p>
-                                <p className="font-mono-stm text-sm text-[#3a3a3a] leading-relaxed">
-                                    Visit all {totalSections} sections to unlock
-                                    the magic flower!
-                                </p>
-                                <p className="font-mono-stm text-[10px] text-gray-400 mt-1">
-                                    {visitedCount}/{totalSections} visited
-                                </p>
-                            </div>
-                        </div>
-                    )}
-                    {visitedCount === totalSections && (
-                        <div className="relative pointer-events-auto">
-                            <button
-                                className="flower-sparkle cursor-pointer"
-                                onClick={() => {
-                                    if (showFlowerQuote) {
-                                        closeFlowerQuote();
-                                    } else {
-                                        if (soundOnRef.current)
-                                            new Audio("/audio/click-open.mp3")
-                                                .play()
-                                                .catch(() => {});
-                                        setShowFlowerQuote(true);
-                                    }
-                                }}
-                                aria-label="You found them all!"
-                            >
-                                <Image
-                                    src="/icons/flowers/magic-flower-red.webp"
-                                    alt="All sections visited!"
-                                    width={40}
-                                    height={40}
-                                    className="animate-flower-pop"
-                                />
-                            </button>
-
-                            {showFlowerQuote && (
-                                <>
-                                    <div
-                                        className="fixed inset-0"
-                                        onClick={closeFlowerQuote}
-                                    />
-                                    <div className="flower-quote-card absolute right-0 top-12 w-64">
-                                        <p className="font-pixel text-md text-[#e85d5d] mb-2 tracking-wide">
-                                            ✨ Congratulations!
-                                        </p>
-                                        <p className="font-mono-stm text-sm text-[#3a3a3a] leading-relaxed">
-                                            You explored everything! The magic
-                                            flower blooms for you 🌸 — hope you
-                                            enjoyed the journey ✨
-                                        </p>
-                                        <button
-                                            className="mt-3 font-mono-stm text-[11px] text-gray-400 hover:text-[#e85d5d] transition-colors cursor-pointer"
-                                            onClick={closeFlowerQuote}
-                                        >
-                                            [ close ]
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}
-                </div>
-
                 <button
-                    className="cursor-pointer shrink-0"
-                    style={{ width: 36, height: 36 }}
-                    aria-label={soundOn ? "Mute sound" : "Unmute sound"}
                     onClick={() => {
-                        const next = !soundOn;
-                        soundOnRef.current = next;
-                        setSoundOn(next);
-                        if (chillAudioRef.current)
-                            chillAudioRef.current.muted = !next;
+                        if (soundOnRef.current) new Audio("/audio/click-open.mp3").play().catch(() => {});
+                        setShowMenu(true);
                     }}
+                    className="font-mono-stm text-base text-[#333] hover:text-[#e85d5d] transition-colors cursor-pointer leading-none font-bold"
+                    aria-label="Open menu"
                 >
-                    <Image
-                        src={
-                            soundOn
-                                ? "/icons/ui/sound-on.webp"
-                                : "/icons/ui/sound-off.webp"
-                        }
-                        alt=""
-                        width={36}
-                        height={36}
-                    />
+                    [ ≡ ]
                 </button>
             </div>
 
@@ -264,38 +228,11 @@ export default function Portfolio() {
                 onReady={onReady}
             />
 
-            {showHint && (
-                <div
-                    className="absolute bottom-24 inset-x-0 hidden sm:flex justify-center pointer-events-none"
-                    style={{ zIndex: Z.hud }}
-                >
-                    <div className="bg-black/60 text-white font-mono-stm text-md px-4 py-2 rounded-lg text-center">
-                        <p>← → to move &nbsp;·&nbsp; ↑ or Space to jump</p>
-                        <p>Jump into the flowers to open the sections!</p>
-                        <p className="mt-1 text-white/60 text-sm">Visit all sections to unlock the magic flower at the top right ✨</p>
-                    </div>
-                </div>
-            )}
 
             <div
                 className="absolute bottom-4 right-4 hidden sm:flex flex-col items-center cursor-pointer"
                 style={{ zIndex: Z.hud }}
-                onClick={() => {
-                    if (!frogDancing) {
-                        const audio = new Audio("/audio/chill.mp3");
-                        audio.loop = true;
-                        audio.muted = !soundOnRef.current;
-                        audio.play().catch(() => {});
-                        chillAudioRef.current = audio;
-                    } else {
-                        if (chillAudioRef.current) {
-                            chillAudioRef.current.pause();
-                            chillAudioRef.current.currentTime = 0;
-                            chillAudioRef.current = null;
-                        }
-                    }
-                    setFrogDancing((v) => !v);
-                }}
+                onClick={handleSoundToggle}
             >
                 <Image
                     src={
@@ -321,13 +258,6 @@ export default function Portfolio() {
                         © 2026 Mainao · made with{" "}
                         <span className="text-[#e85d5d]">♥</span>
                     </span>
-                    <span className="hidden sm:inline text-[#aaa]">|</span>
-                    <Link
-                        href="/instructions"
-                        className="hidden sm:inline pointer-events-auto font-mono-stm text-xs text-[#e85d5d] hover:underline transition-colors"
-                    >
-                        instructions
-                    </Link>
                 </div>
             </div>
 
@@ -394,14 +324,35 @@ export default function Portfolio() {
                     titleId="modal-title"
                 >
                     <ModalContent section={modal} titleId="modal-title" />
-                    <button
-                        onClick={closeModal}
-                        className="mt-2 w-full bg-[#171717] text-[#f5f1e8] font-pixel text-sm py-2.5 border-2 border-[#171717] shadow-[3px_3px_0_#e85d5d] hover:shadow-[1px_1px_0_#e85d5d] hover:translate-x-0.5 hover:translate-y-0.5 transition-[transform,box-shadow] duration-100 cursor-pointer tracking-wide"
+                    <p
+                        className="font-mono-stm text-center mt-6"
+                        style={{
+                            fontSize: 12,
+                            color: "#555",
+                            letterSpacing: "0.05em",
+                            animation: "dialoguePulse 1.2s ease-in-out infinite",
+                        }}
                     >
-                        Continue exploring ▶
-                    </button>
+                        <span style={{ color: "#e85d5d" }}>►</span> press enter to continue
+                    </p>
                 </Modal>
             )}
+
+
+            <Modal
+                isOpen={showMenu}
+                onClose={() => {
+                    if (soundOnRef.current) new Audio("/audio/click-close.mp3").play().catch(() => {});
+                    setShowMenu(false);
+                }}
+                titleId="menu-title"
+                showClose
+            >
+                <MenuModalContent
+                    soundOn={soundOn}
+                    onSoundToggle={handleSfxToggle}
+                />
+            </Modal>
 
             {!gameReady && (
                 <div

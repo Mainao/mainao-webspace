@@ -8,6 +8,7 @@ type ModalProps = {
     children: React.ReactNode;
     closeOnEscape?: boolean;
     titleId?: string;
+    showClose?: boolean;
 };
 
 export default function Modal({
@@ -16,6 +17,7 @@ export default function Modal({
     children,
     closeOnEscape = true,
     titleId: titleIdProp,
+    showClose = false,
 }: ModalProps) {
     const generatedId = useId();
     const titleId = titleIdProp ?? generatedId;
@@ -96,10 +98,12 @@ export default function Modal({
             >
                 <button
                     onClick={handleClose}
-                    className="absolute top-3 right-3 font-mono-stm text-sm text-gray-500 hover:text-[#e85d5d] transition-colors cursor-pointer leading-none focus:outline-none focus-visible:outline-2 focus-visible:outline-[#e85d5d] focus-visible:outline-offset-2"
+                    className={showClose
+                        ? "absolute top-5 right-3 font-mono-stm text-sm text-gray-500 hover:text-[#e85d5d] transition-colors cursor-pointer leading-none focus:outline-none focus-visible:outline-2 focus-visible:outline-[#e85d5d] focus-visible:outline-offset-2"
+                        : "sr-only"}
                     aria-label="Close dialog"
                 >
-                    [ close ]
+                    {showClose ? "[ close ]" : "Close"}
                 </button>
                 <div>{children}</div>
             </div>

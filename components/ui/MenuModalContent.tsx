@@ -355,7 +355,6 @@ export default function MenuModalContent({ soundOn, onSoundToggle, onClose }: Pr
                     color: "#555",
                     letterSpacing: "0.05em",
                     padding: "16px 0 24px 0",
-                    animation: "dialoguePulse 1.2s ease-in-out infinite",
                 }}
                 onClick={onClose}
             >

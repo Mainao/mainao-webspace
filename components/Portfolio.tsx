@@ -180,13 +180,13 @@ export default function Portfolio() {
             {visitedCount === totalSections && <RewardTypewriter />}
 
             <div
-                className="absolute top-[calc(50vh-210px)] sm:top-32 left-0 right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 text-center pointer-events-none px-20 sm:px-0"
+                className="absolute top-[calc(50vh-210px)] sm:top-32 left-0 right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 text-center pointer-events-none px-8 sm:px-0"
                 style={{ zIndex: Z.hud }}
             >
-                <h1 className="font-(--font-pixelify-sans) text-3xl sm:text-5xl md:text-7xl text-[#2d2d2d] select-none tracking-widest">
+                <h1 className="font-(--font-pixelify-sans) text-5xl md:text-7xl text-[#2d2d2d] select-none tracking-wider sm:tracking-widest">
                     Hi! I&apos;m Mainao
                 </h1>
-                <p className="mt-2 sm:mt-2 text-base sm:text-lg md:text-xl text-[#555] select-none font-mono-stm tracking-widest">
+                <p className="mt-2 sm:mt-2 text-lg md:text-xl text-[#555] select-none font-mono-stm tracking-wider sm:tracking-widest">
                     Welcome to my cute space on the internet :)
                 </p>
             </div>
@@ -323,17 +323,22 @@ export default function Portfolio() {
                     onClose={closeModal}
                     titleId="modal-title"
                 >
-                    <ModalContent section={modal} titleId="modal-title" />
+                    <div className="flex-1 overflow-y-auto sm:overflow-visible">
+                        <ModalContent section={modal} titleId="modal-title" />
+                    </div>
                     <p
-                        className="font-mono-stm text-center mt-6"
+                        className="font-mono-stm text-center mt-6 sm:mt-6 w-full sm:w-auto pb-6 sm:pb-0"
                         style={{
                             fontSize: 12,
                             color: "#555",
                             letterSpacing: "0.05em",
                             animation: "dialoguePulse 1.2s ease-in-out infinite",
                         }}
+                        onClick={closeModal}
                     >
-                        <span style={{ color: "#e85d5d" }}>►</span> press enter to continue
+                        <span style={{ color: "#e85d5d" }}>►</span>{" "}
+                        <span className="hidden sm:inline">press enter to continue</span>
+                        <span className="sm:hidden">tap to close</span>
                     </p>
                 </Modal>
             )}
@@ -351,6 +356,10 @@ export default function Portfolio() {
                 <MenuModalContent
                     soundOn={soundOn}
                     onSoundToggle={handleSfxToggle}
+                    onClose={() => {
+                        if (soundOnRef.current) new Audio("/audio/click-close.mp3").play().catch(() => {});
+                        setShowMenu(false);
+                    }}
                 />
             </Modal>
 

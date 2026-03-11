@@ -32,7 +32,7 @@ function drawTulip(
     }
 
     ctx.fillStyle = "#444";
-    ctx.font = `${sec.visited ? "bold " : ""}${tW <= 56 ? "10" : "12"}px Pixelify_Sans, monospace`;
+    ctx.font = `${sec.visited ? "bold " : ""}${tW <= 84 ? "13" : "14"}px Pixelify_Sans, monospace`;
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
     ctx.fillText(sec.label, sx + tW / 2, sy + tH + 4);
@@ -192,13 +192,13 @@ export default function GameWorld({
             const isMobile = cw < 640;
 
             if (isMobile) {
-                const tW = 56, tH = 56, gap = 10, slot = 66;
-                const rowGap = 24;
+                const tW = 84, tH = 84, gap = 20, slot = 104;
+                const rowGap = 60;
                 const row1Count = 3, row2Count = sections.length - 3;
                 const row1W = row1Count * slot - gap;
                 const row2W = row2Count * slot - gap;
                 const groundY = ch * (1 - GROUND_FRAC);
-                const midY = ch / 2;
+                const midY = ch * 0.58;
                 const row1Y = midY - tH - rowGap / 2;
                 const row2Y = midY + rowGap / 2;
 

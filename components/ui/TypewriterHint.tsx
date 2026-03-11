@@ -60,6 +60,7 @@ export default function TypewriterHint({ onDone }: Props) {
         <>
             <style>{STYLES}</style>
             <div
+                className="hidden sm:flex"
                 style={{
                     position: "fixed",
                     bottom: 120,
@@ -70,7 +71,6 @@ export default function TypewriterHint({ onDone }: Props) {
                     textAlign: "center",
                     pointerEvents: "none",
                     zIndex: 15,
-                    display: "flex",
                     flexDirection: "column",
                     gap: 6,
                     opacity: fading ? 0 : 1,

@@ -99,13 +99,13 @@ export default function Modal({
                 <button
                     onClick={handleClose}
                     className={showClose
-                        ? "absolute top-5 right-3 font-mono-stm text-sm text-gray-500 hover:text-[#e85d5d] transition-colors cursor-pointer leading-none focus:outline-none focus-visible:outline-2 focus-visible:outline-[#e85d5d] focus-visible:outline-offset-2"
+                        ? "hidden sm:block absolute top-3 right-3 font-mono-stm text-sm text-gray-500 hover:text-[#e85d5d] transition-colors cursor-pointer leading-none focus:outline-none focus-visible:outline-2 focus-visible:outline-[#e85d5d] focus-visible:outline-offset-2"
                         : "sr-only"}
                     aria-label="Close dialog"
                 >
                     {showClose ? "[ close ]" : "Close"}
                 </button>
-                <div>{children}</div>
+                <div className="flex flex-col sm:block h-full sm:h-auto">{children}</div>
             </div>
         </div>,
         document.getElementsByTagName("body")[0],

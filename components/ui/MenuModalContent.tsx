@@ -8,6 +8,7 @@ type Tab = "howtoplay" | "audio" | "credits" | "guestbook";
 type Props = {
     soundOn: boolean;
     onSoundToggle: () => void;
+    onClose: () => void;
 };
 
 const TABS: { id: Tab; label: string }[] = [
@@ -298,8 +299,10 @@ function GuestbookTabOld() {
 
 // ── Root component ───────────────────────────────────────────────────────────
 
-export default function MenuModalContent({ soundOn, onSoundToggle }: Props) {
-    const [activeTab, setActiveTab] = useState<Tab>("howtoplay");
+export default function MenuModalContent({ soundOn, onSoundToggle, onClose }: Props) {
+    const [activeTab, setActiveTab] = useState<Tab>(
+        typeof window !== "undefined" && window.innerWidth < 640 ? "audio" : "howtoplay"
+    );
 
     return (
         <>
@@ -319,7 +322,9 @@ export default function MenuModalContent({ soundOn, onSoundToggle }: Props) {
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex-1 flex items-center justify-center pt-3 pb-2 transition-colors cursor-pointer font-mono-stm ${
+                            className={`flex-1 items-center justify-center pt-3 pb-2 transition-colors cursor-pointer font-mono-stm ${
+                                tab.id === "howtoplay" ? "hidden sm:flex" : "flex"
+                            } ${
                                 activeTab === tab.id
                                     ? "text-[#333] border-b-2 border-[#333]"
                                     : "text-[#888]"
@@ -333,7 +338,7 @@ export default function MenuModalContent({ soundOn, onSoundToggle }: Props) {
             </div>
 
             {/* Tab content */}
-            <div className="mt-4 min-h-[280px]">
+            <div className="flex-1 mt-4 min-h-[280px] overflow-y-auto sm:overflow-visible">
                 {activeTab === "howtoplay" && <HowToPlayTab />}
                 {activeTab === "audio" && (
                     <AudioTab soundOn={soundOn} onSoundToggle={onSoundToggle} />
@@ -341,6 +346,21 @@ export default function MenuModalContent({ soundOn, onSoundToggle }: Props) {
                 {activeTab === "credits" && <CreditsTab />}
                 {activeTab === "guestbook" && <GuestbookTab />}
             </div>
+
+            {/* Mobile close prompt */}
+            <p
+                className="sm:hidden font-mono-stm text-center w-full border-t border-[#dedede] cursor-pointer"
+                style={{
+                    fontSize: 12,
+                    color: "#555",
+                    letterSpacing: "0.05em",
+                    padding: "16px 0 24px 0",
+                    animation: "dialoguePulse 1.2s ease-in-out infinite",
+                }}
+                onClick={onClose}
+            >
+                <span style={{ color: "#e85d5d" }}>►</span> tap to close
+            </p>
         </>
     );
 }

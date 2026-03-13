@@ -35,6 +35,7 @@ export default function RewardTypewriter() {
         <>
             <style>{STYLES}</style>
             <div
+                className="hidden sm:flex"
                 style={{
                     position: "fixed",
                     bottom: 120,
@@ -43,7 +44,6 @@ export default function RewardTypewriter() {
                     textAlign: "center",
                     pointerEvents: "none",
                     zIndex: 15,
-                    display: "flex",
                     flexDirection: "column",
                     gap: 8,
                 }}

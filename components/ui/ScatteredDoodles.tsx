@@ -115,7 +115,7 @@ export default function ScatteredDoodles({ allVisited }: Props) {
         <>
             <style>{STYLES}</style>
             <div
-                className="fixed inset-0 pointer-events-none overflow-hidden"
+                className="hidden sm:block fixed inset-0 pointer-events-none overflow-hidden"
                 style={{ zIndex: 5 }}
                 aria-hidden="true"
             >

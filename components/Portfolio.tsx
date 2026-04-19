@@ -1,15 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import GameWorld from "./game/GameWorld";
-import ModalContent from "./ui/ModalContent";
 import { SECTION_DEFS } from "@/lib/sections";
 import { Z } from "@/lib/constants";
 import type { Section, GameControls } from "@/lib/types";
 import Modal from "./ui/Modal";
-import MenuModalContent from "./ui/MenuModalContent";
 import ScatteredDoodles from "./ui/ScatteredDoodles";
+
+const ModalContent = lazy(() => import("./ui/ModalContent"));
+const MenuModalContent = lazy(() => import("./ui/MenuModalContent"));
 import TypewriterHint from "./ui/TypewriterHint";
 import RewardTypewriter from "./ui/RewardTypewriter";
 
@@ -171,7 +172,7 @@ export default function Portfolio() {
                 style={{ zIndex: Z.background }}
             />
 
-            <ScatteredDoodles allVisited={visitedCount === totalSections} />
+            {visitedCount === totalSections && <ScatteredDoodles />}
 
             {showTypewriterHint && visitedCount < totalSections && (
                 <TypewriterHint onDone={() => setShowTypewriterHint(false)} />
@@ -318,49 +319,53 @@ export default function Portfolio() {
             </div>
 
             {modal && (
-                <Modal
-                    isOpen={!!modal}
-                    onClose={closeModal}
-                    titleId="modal-title"
-                >
-                    <div className="flex-1 overflow-y-auto sm:overflow-visible">
-                        <ModalContent section={modal} titleId="modal-title" />
-                    </div>
-                    <p
-                        className="font-mono-stm text-center mt-6 sm:mt-6 w-full sm:w-auto pb-6 sm:pb-0 dialogue-pulse"
-                        style={{
-                            fontSize: 12,
-                            color: "#555",
-                            letterSpacing: "0.05em",
-                        }}
-                        onClick={closeModal}
+                <Suspense fallback={null}>
+                    <Modal
+                        isOpen={!!modal}
+                        onClose={closeModal}
+                        titleId="modal-title"
                     >
-                        <span style={{ color: "#e85d5d" }}>►</span>{" "}
-                        <span className="hidden sm:inline">press enter to continue</span>
-                        <span className="sm:hidden">tap to close</span>
-                    </p>
-                </Modal>
+                        <div className="flex-1 overflow-y-auto sm:overflow-visible">
+                            <ModalContent section={modal} titleId="modal-title" />
+                        </div>
+                        <p
+                            className="font-mono-stm text-center mt-6 sm:mt-6 w-full sm:w-auto pb-6 sm:pb-0 dialogue-pulse"
+                            style={{
+                                fontSize: 12,
+                                color: "#555",
+                                letterSpacing: "0.05em",
+                            }}
+                            onClick={closeModal}
+                        >
+                            <span style={{ color: "#e85d5d" }}>►</span>{" "}
+                            <span className="hidden sm:inline">press enter to continue</span>
+                            <span className="sm:hidden">tap to close</span>
+                        </p>
+                    </Modal>
+                </Suspense>
             )}
 
 
-            <Modal
-                isOpen={showMenu}
-                onClose={() => {
-                    if (soundOnRef.current) new Audio("/audio/click-close.mp3").play().catch(() => {});
-                    setShowMenu(false);
-                }}
-                titleId="menu-title"
-                showClose
-            >
-                <MenuModalContent
-                    soundOn={soundOn}
-                    onSoundToggle={handleSfxToggle}
+            <Suspense fallback={null}>
+                <Modal
+                    isOpen={showMenu}
                     onClose={() => {
                         if (soundOnRef.current) new Audio("/audio/click-close.mp3").play().catch(() => {});
                         setShowMenu(false);
                     }}
-                />
-            </Modal>
+                    titleId="menu-title"
+                    showClose
+                >
+                    <MenuModalContent
+                        soundOn={soundOn}
+                        onSoundToggle={handleSfxToggle}
+                        onClose={() => {
+                            if (soundOnRef.current) new Audio("/audio/click-close.mp3").play().catch(() => {});
+                            setShowMenu(false);
+                        }}
+                    />
+                </Modal>
+            </Suspense>
 
             {!gameReady && (
                 <div

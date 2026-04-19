@@ -1,7 +1,3 @@
-"use client";
-
-import { useEffect, useState } from "react";
-
 const doodles = [
     // flowers — spread across all quadrants
     { shape: "flower", top: "8%",  left: "12%", size: 30, rotate: 15  },
@@ -26,7 +22,7 @@ const doodles = [
     { shape: "leaf",   top: "45%", left: "97%", size: 26, rotate: 15  },
 ] as const;
 
-const BLOOM_DURATION = 800;
+const BLOOM_MS = 800;
 
 const STYLES = `
     @keyframes bloomIn {
@@ -47,6 +43,20 @@ const STYLES = `
         50%  { transform: translateY(-20px) translateX(-6px)   rotate(calc(var(--rot) - 50deg)); }
         75%  { transform: translateY(-10px) translateX(-12px)  rotate(calc(var(--rot) - 35deg)); }
         100% { transform: translateY(0px)   translateX(0px)    rotate(calc(var(--rot) - 360deg)); }
+    }
+    .doodle {
+        position: absolute;
+        opacity: 0;
+    }
+    .doodle-even {
+        animation:
+            bloomIn ${BLOOM_MS}ms cubic-bezier(0.34, 1.56, 0.64, 1) var(--bloom-delay) forwards,
+            petalFall var(--float-duration) ease-in-out var(--float-delay) infinite;
+    }
+    .doodle-odd {
+        animation:
+            bloomIn ${BLOOM_MS}ms cubic-bezier(0.34, 1.56, 0.64, 1) var(--bloom-delay) forwards,
+            petalFallAlt var(--float-duration) ease-in-out var(--float-delay) infinite;
     }
 `;
 
@@ -71,46 +81,7 @@ function Leaf() {
     );
 }
 
-type Phase = "hidden" | "blooming" | "floating";
-
-type Props = { allVisited: boolean };
-
-export default function ScatteredDoodles({ allVisited }: Props) {
-    const [phases, setPhases] = useState<Phase[]>(() => doodles.map(() => "hidden"));
-
-    useEffect(() => {
-        if (!allVisited) return;
-
-        const timers: ReturnType<typeof setTimeout>[] = [];
-
-        doodles.forEach((_, i) => {
-            const bloomDelay = i * 150;
-            const floatDelay = bloomDelay + BLOOM_DURATION;
-
-            timers.push(
-                setTimeout(() => {
-                    setPhases((prev) => {
-                        const next = [...prev];
-                        next[i] = "blooming";
-                        return next;
-                    });
-                }, bloomDelay),
-            );
-
-            timers.push(
-                setTimeout(() => {
-                    setPhases((prev) => {
-                        const next = [...prev];
-                        next[i] = "floating";
-                        return next;
-                    });
-                }, floatDelay),
-            );
-        });
-
-        return () => timers.forEach(clearTimeout);
-    }, [allVisited]);
-
+export default function ScatteredDoodles() {
     return (
         <>
             <style>{STYLES}</style>
@@ -119,45 +90,24 @@ export default function ScatteredDoodles({ allVisited }: Props) {
                 style={{ zIndex: 5 }}
                 aria-hidden="true"
             >
-                {doodles.map((d, i) => {
-                    const phase = phases[i];
-                    const petalAnim = i % 2 === 0 ? "petalFall" : "petalFallAlt";
-                    const petalDuration = `${(8 + i * 0.7).toFixed(1)}s`;
-
-                    const base = {
-                        position: "absolute" as const,
-                        top: d.top,
-                        left: d.left,
-                        width: d.size,
-                        height: d.size,
-                        ["--rot"]: `${d.rotate}deg`,
-                    };
-                    const phaseStyle =
-                        phase === "blooming"
-                            ? {
-                                  opacity: undefined as undefined,
-                                  animationName: "bloomIn",
-                                  animationDuration: `${BLOOM_DURATION}ms`,
-                                  animationTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
-                                  animationFillMode: "forwards",
-                              }
-                            : phase === "floating"
-                            ? {
-                                  opacity: 0.85,
-                                  animationName: petalAnim,
-                                  animationDuration: petalDuration,
-                                  animationTimingFunction: "ease-in-out",
-                                  animationIterationCount: "infinite",
-                              }
-                            : { opacity: 0 };
-                    const style = { ...base, ...phaseStyle } as React.CSSProperties;
-
-                    return (
-                        <div key={i} style={style}>
-                            {d.shape === "flower" ? <Flower /> : <Leaf />}
-                        </div>
-                    );
-                })}
+                {doodles.map((d, i) => (
+                    <div
+                        key={i}
+                        className={`doodle ${i % 2 === 0 ? "doodle-even" : "doodle-odd"}`}
+                        style={{
+                            top: d.top,
+                            left: d.left,
+                            width: d.size,
+                            height: d.size,
+                            "--rot": `${d.rotate}deg`,
+                            "--bloom-delay": `${i * 150}ms`,
+                            "--float-delay": `${i * 150 + BLOOM_MS}ms`,
+                            "--float-duration": `${(8 + i * 0.7).toFixed(1)}s`,
+                        } as React.CSSProperties}
+                    >
+                        {d.shape === "flower" ? <Flower /> : <Leaf />}
+                    </div>
+                ))}
             </div>
         </>
     );

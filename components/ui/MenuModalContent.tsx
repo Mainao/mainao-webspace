@@ -249,7 +249,6 @@ export default function MenuModalContent({
                     <AudioTab soundOn={soundOn} onSoundToggle={onSoundToggle} />
                 )}
                 {activeTab === "credits" && <CreditsTab />}
-                {activeTab === "guestbook" && <GuestbookTab />}
             </div>
 
             {/* Mobile close prompt */}

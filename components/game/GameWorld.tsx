@@ -52,7 +52,6 @@ function drawGround(ctx: CanvasRenderingContext2D, groundY: number) {
 export default function GameWorld({
     sections,
     onSectionHit,
-    onMove,
     controlsRef,
     onLoadProgress,
     onReady,
@@ -104,27 +103,18 @@ export default function GameWorld({
         const keys = { left: false, right: false };
         const cooldowns: Record<string, number> = {};
         let rafId = 0;
-        let moved = false;
         let paused = false;
 
         controlsRef.current = {
             setKey: (k, v) => {
                 if (paused) return;
                 keys[k] = v;
-                if (v && !moved) {
-                    moved = true;
-                    onMove();
-                }
             },
             jump: () => {
                 if (paused) return;
                 if (onGround) {
                     velY = JUMP_FORCE;
                     onGround = false;
-                }
-                if (!moved) {
-                    moved = true;
-                    onMove();
                 }
             },
             setPaused: (v: boolean) => {
@@ -140,17 +130,9 @@ export default function GameWorld({
             if (paused) return;
             if (e.key === "ArrowLeft" || e.key === "a") {
                 keys.left = true;
-                if (!moved) {
-                    moved = true;
-                    onMove();
-                }
             }
             if (e.key === "ArrowRight" || e.key === "d") {
                 keys.right = true;
-                if (!moved) {
-                    moved = true;
-                    onMove();
-                }
             }
             if (
                 (e.key === " " || e.key === "ArrowUp" || e.key === "w") &&
@@ -158,10 +140,6 @@ export default function GameWorld({
             ) {
                 velY = JUMP_FORCE;
                 onGround = false;
-                if (!moved) {
-                    moved = true;
-                    onMove();
-                }
             }
             if ([" ", "ArrowUp", "ArrowLeft", "ArrowRight"].includes(e.key))
                 e.preventDefault();
@@ -362,7 +340,7 @@ export default function GameWorld({
             window.removeEventListener("resize", onResize);
             canvas.removeEventListener("click", handleTap);
         };
-    }, [sections, onSectionHit, onMove, controlsRef, onLoadProgress, onReady]);
+    }, [sections, onSectionHit, controlsRef, onLoadProgress, onReady]);
 
     return (
         <canvas

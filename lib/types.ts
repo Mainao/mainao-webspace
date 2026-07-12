@@ -18,7 +18,6 @@ export interface GameControls {
 export interface GameWorldProps {
     sections: Section[];
     onSectionHit: (id: string) => void;
-    onMove: () => void;
     controlsRef: RefObject<GameControls | null>;
     onLoadProgress: (loaded: number, total: number) => void;
     onReady: () => void;

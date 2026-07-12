@@ -11,7 +11,6 @@ import ScatteredDoodles from "./ui/ScatteredDoodles";
 
 const ModalContent = lazy(() => import("./ui/ModalContent"));
 const MenuModalContent = lazy(() => import("./ui/MenuModalContent"));
-import TypewriterHint from "./ui/TypewriterHint";
 import RewardTypewriter from "./ui/RewardTypewriter";
 
 export default function Portfolio() {
@@ -27,7 +26,6 @@ export default function Portfolio() {
     const [visitedCount, setVisitedCount] = useState(0);
     const [gameReady, setGameReady] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
-    const [showTypewriterHint, setShowTypewriterHint] = useState(false);
     const [frogDancing, setFrogDancing] = useState(false);
     const frogDancingRef = useRef(false);
     const [soundOn, setSoundOn] = useState(true);
@@ -108,13 +106,10 @@ export default function Portfolio() {
         }
     }, [totalSections]);
 
-    const hideHint = useCallback(() => {}, []);
-
     const onLoadProgress = useCallback(() => {}, []);
 
     const onReady = useCallback(() => {
         setGameReady(true);
-        setShowTypewriterHint(true);
     }, []);
 
     const closeModal = useCallback(() => {
@@ -174,10 +169,6 @@ export default function Portfolio() {
 
             {visitedCount === totalSections && <ScatteredDoodles />}
 
-            {showTypewriterHint && visitedCount < totalSections && (
-                <TypewriterHint onDone={() => setShowTypewriterHint(false)} />
-            )}
-
             {visitedCount === totalSections && <RewardTypewriter />}
 
             <div
@@ -223,7 +214,6 @@ export default function Portfolio() {
             <GameWorld
                 sections={sections}
                 onSectionHit={onSectionHit}
-                onMove={hideHint}
                 controlsRef={controlsRef}
                 onLoadProgress={onLoadProgress}
                 onReady={onReady}
@@ -254,10 +244,22 @@ export default function Portfolio() {
                 className="fixed bottom-4 left-1/2 -translate-x-1/2 pointer-events-none"
                 style={{ zIndex: Z.hud }}
             >
-                <div className="flex items-center gap-2">
-                    <span className="font-mono-stm text-xs text-[#555]">
-                        © 2026 Mainao · made with{" "}
-                        <span className="text-[#e85d5d]">♥</span>
+                <div className="hidden sm:flex flex-col items-center gap-1.5 text-center">
+                    <span
+                        className="font-mono-stm"
+                        style={{
+                            fontSize: 18,
+                            fontWeight: 600,
+                            color: "#2d2d2d",
+                        }}
+                    >
+                        ← → to move <span className="text-[#bbb]">·</span> ↑ or Space to jump
+                    </span>
+                    <span
+                        className="font-mono-stm"
+                        style={{ fontSize: 14, color: "#555" }}
+                    >
+                        jump into the flowers!
                     </span>
                 </div>
             </div>
@@ -270,10 +272,9 @@ export default function Portfolio() {
                     className="w-14 h-14 rounded-xl bg-white/90 border-2 border-gray-300 shadow-lg text-xl flex items-center justify-center active:scale-95 touch-none"
                     aria-label="Move left"
                     tabIndex={-1}
-                    onPointerDown={() => {
-                        controlsRef.current?.setKey("left", true);
-                        hideHint();
-                    }}
+                    onPointerDown={() =>
+                        controlsRef.current?.setKey("left", true)
+                    }
                     onPointerUp={() =>
                         controlsRef.current?.setKey("left", false)
                     }
@@ -287,10 +288,9 @@ export default function Portfolio() {
                     className="w-14 h-14 rounded-xl bg-white/90 border-2 border-gray-300 shadow-lg text-xl flex items-center justify-center active:scale-95 touch-none"
                     aria-label="Move right"
                     tabIndex={-1}
-                    onPointerDown={() => {
-                        controlsRef.current?.setKey("right", true);
-                        hideHint();
-                    }}
+                    onPointerDown={() =>
+                        controlsRef.current?.setKey("right", true)
+                    }
                     onPointerUp={() =>
                         controlsRef.current?.setKey("right", false)
                     }
@@ -309,10 +309,7 @@ export default function Portfolio() {
                     className="w-16 h-16 rounded-full bg-[#e85d5d] border-2 border-[#c44] text-white shadow-lg font-(--font-pixelify-sans) text-sm flex items-center justify-center active:scale-95 touch-none"
                     aria-label="Jump"
                     tabIndex={-1}
-                    onPointerDown={() => {
-                        controlsRef.current?.jump();
-                        hideHint();
-                    }}
+                    onPointerDown={() => controlsRef.current?.jump()}
                 >
                     JUMP
                 </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type { GameWorldProps } from "@/lib/types";
 import {
     GRAVITY,
@@ -17,6 +17,61 @@ import {
     TULIP_SRCS,
 } from "@/lib/constants";
 import type { Section } from "@/lib/types";
+
+// ---------------------------------------------------------------------------
+// Shared position logic — used by BOTH the canvas draw loop and the
+// accessible DOM overlay, so the invisible buttons always line up exactly
+// with the tulips drawn on the canvas.
+// ---------------------------------------------------------------------------
+type BoxPos = { sx: number; sy: number; tW: number; tH: number };
+
+function computeBoxScreenPositions(
+    sections: Section[],
+    cw: number,
+    ch: number,
+): BoxPos[] {
+    const isMobile = cw < 640;
+
+    if (isMobile) {
+        const tW = 84,
+            tH = 84,
+            gap = 20,
+            slot = 104;
+        const rowGap = 60;
+        const row1Count = 3,
+            row2Count = sections.length - 3;
+        const row1W = row1Count * slot - gap;
+        const row2W = row2Count * slot - gap;
+        const midY = ch * 0.58;
+        const row1Y = midY - tH - rowGap / 2;
+        const row2Y = midY + rowGap / 2;
+
+        return sections.map((_, i) => {
+            if (i < 3) {
+                return { sx: (cw - row1W) / 2 + i * slot, sy: row1Y, tW, tH };
+            } else {
+                return {
+                    sx: (cw - row2W) / 2 + (i - 3) * slot,
+                    sy: row2Y,
+                    tW,
+                    tH,
+                };
+            }
+        });
+    }
+
+    const gap = 52;
+    const slot = TULIP_W + gap;
+    const totalW = TULIP_W + (sections.length - 1) * slot;
+    const startX = (cw - totalW) / 2;
+    const baseY = (ch - TULIP_H) / 2;
+    return sections.map((_, i) => ({
+        sx: startX + i * slot,
+        sy: baseY,
+        tW: TULIP_W,
+        tH: TULIP_H,
+    }));
+}
 
 function drawTulip(
     ctx: CanvasRenderingContext2D,
@@ -49,6 +104,17 @@ function drawGround(ctx: CanvasRenderingContext2D, groundY: number) {
     ctx.setLineDash([]);
 }
 
+// Visually-hidden but still focusable / in the accessibility tree.
+// (Never use display:none or visibility:hidden — those remove elements
+// from the accessibility tree entirely.)
+const srOnlyStyle: React.CSSProperties = {
+    position: "absolute",
+    overflow: "hidden",
+    clip: "rect(0 0 0 0)",
+    clipPath: "inset(50%)",
+    whiteSpace: "nowrap",
+};
+
 export default function GameWorld({
     sections,
     onSectionHit,
@@ -57,6 +123,23 @@ export default function GameWorld({
     onReady,
 }: GameWorldProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const overlayRef = useRef<HTMLDivElement>(null);
+
+    // Positions for the accessible overlay buttons. Kept in state so React
+    // re-renders the overlay whenever the canvas recomputes layout (resize).
+    const [boxPositions, setBoxPositions] = useState<BoxPos[]>([]);
+    const [announcement, setAnnouncement] = useState("");
+    const [skipExpanded, setSkipExpanded] = useState(false);
+
+    // Called by both the canvas hit-test and the overlay buttons, so the
+    // live-region announcement fires regardless of how the section was hit.
+    const handleSectionHit = useCallback(
+        (id: string, label: string) => {
+            onSectionHit(id);
+            setAnnouncement(`${label} activated`);
+        },
+        [onSectionHit],
+    );
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -104,6 +187,9 @@ export default function GameWorld({
         const cooldowns: Record<string, number> = {};
         let rafId = 0;
         let paused = false;
+
+        // Push initial positions to the overlay.
+        setBoxPositions(computeBoxScreenPositions(sections, cw, ch));
 
         controlsRef.current = {
             setKey: (k, v) => {
@@ -163,44 +249,10 @@ export default function GameWorld({
                 onGround = true;
             }
             charX = Math.max(0, Math.min(cw - CHAR_W, charX));
+            // Keep the DOM overlay in sync with the new canvas layout.
+            setBoxPositions(computeBoxScreenPositions(sections, cw, ch));
         };
         window.addEventListener("resize", onResize);
-
-        function getBoxScreenPositions(): { sx: number; sy: number; tW: number; tH: number }[] {
-            const isMobile = cw < 640;
-
-            if (isMobile) {
-                const tW = 84, tH = 84, gap = 20, slot = 104;
-                const rowGap = 60;
-                const row1Count = 3, row2Count = sections.length - 3;
-                const row1W = row1Count * slot - gap;
-                const row2W = row2Count * slot - gap;
-                const groundY = ch * (1 - GROUND_FRAC);
-                const midY = ch * 0.58;
-                const row1Y = midY - tH - rowGap / 2;
-                const row2Y = midY + rowGap / 2;
-
-                return sections.map((_, i) => {
-                    if (i < 3) {
-                        return { sx: (cw - row1W) / 2 + i * slot, sy: row1Y, tW, tH };
-                    } else {
-                        return { sx: (cw - row2W) / 2 + (i - 3) * slot, sy: row2Y, tW, tH };
-                    }
-                });
-            }
-
-            const gap = 52;
-            const slot = TULIP_W + gap;
-            const totalW = TULIP_W + (sections.length - 1) * slot;
-            const startX = (cw - totalW) / 2;
-            const baseY = (ch - TULIP_H) / 2;
-            return sections.map((_, i) => ({
-                sx: startX + i * slot,
-                sy: baseY,
-                tW: TULIP_W,
-                tH: TULIP_H,
-            }));
-        }
 
         function tick() {
             for (const id in cooldowns) {
@@ -229,7 +281,7 @@ export default function GameWorld({
                 onGround = true;
             }
 
-            const positions = getBoxScreenPositions();
+            const positions = computeBoxScreenPositions(sections, cw, ch);
             const cx1 = charX + 10;
             const cx2 = charX + CHAR_W - 10;
             const cy1 = charY;
@@ -248,7 +300,7 @@ export default function GameWorld({
                     cy1 < sy + tH &&
                     cy1 > sy
                 ) {
-                    onSectionHit(sec.id);
+                    handleSectionHit(sec.id, sec.label);
                     cooldowns[sec.id] = HIT_COOLDOWN;
                     velY = JUMP_FORCE * BOUNCE_DAMPING;
                     onGround = false;
@@ -265,7 +317,15 @@ export default function GameWorld({
 
             for (let i = 0; i < sections.length; i++) {
                 const { sx, sy, tW, tH } = positions[i];
-                drawTulip(ctx, sections[i], sx, sy, tulipImgs[sections[i].id], tW, tH);
+                drawTulip(
+                    ctx,
+                    sections[i],
+                    sx,
+                    sy,
+                    tulipImgs[sections[i].id],
+                    tW,
+                    tH,
+                );
             }
 
             drawGround(ctx, groundY);
@@ -298,7 +358,7 @@ export default function GameWorld({
             const tapX = e.clientX - rect.left;
             const tapY = e.clientY - rect.top;
             const pad = 10;
-            const positions = getBoxScreenPositions();
+            const positions = computeBoxScreenPositions(sections, cw, ch);
             for (let i = 0; i < sections.length; i++) {
                 const { sx, sy, tW, tH } = positions[i];
                 if (
@@ -307,7 +367,7 @@ export default function GameWorld({
                     tapY >= sy - pad &&
                     tapY <= sy + tH + pad
                 ) {
-                    onSectionHit(sections[i].id);
+                    handleSectionHit(sections[i].id, sections[i].label);
                     break;
                 }
             }
@@ -340,16 +400,110 @@ export default function GameWorld({
             window.removeEventListener("resize", onResize);
             canvas.removeEventListener("click", handleTap);
         };
-    }, [sections, onSectionHit, controlsRef, onLoadProgress, onReady]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        sections,
+        onSectionHit,
+        controlsRef,
+        onLoadProgress,
+        onReady,
+        handleSectionHit,
+    ]);
 
     return (
-        <canvas
-            ref={canvasRef}
-            className="fixed inset-0 outline-none"
-            style={{ zIndex: 10 }}
-            tabIndex={-1}
-            role="img"
-            aria-label="Interactive game world"
-        />
+        <>
+            {/* Skip link: lets keyboard/screen-reader users bypass the
+                physics game entirely and jump straight to a plain list of
+                sections. Only visible/announced on focus. */}
+            <a
+                href="#section-list"
+                style={srOnlyStyle}
+                onFocus={(e) => {
+                    e.currentTarget.style.position = "fixed";
+                    e.currentTarget.style.clip = "auto";
+                    e.currentTarget.style.clipPath = "none";
+                    e.currentTarget.style.top = "8px";
+                    e.currentTarget.style.left = "8px";
+                    e.currentTarget.style.zIndex = "100";
+                    e.currentTarget.style.background = "#fff";
+                    e.currentTarget.style.padding = "8px 12px";
+                    e.currentTarget.style.borderRadius = "6px";
+                    setSkipExpanded(true);
+                }}
+                onBlur={(e) => {
+                    Object.assign(e.currentTarget.style, srOnlyStyle);
+                    setSkipExpanded(false);
+                }}
+            >
+                Skip interactive game, jump to section list
+            </a>
+
+            <canvas
+                ref={canvasRef}
+                className="fixed inset-0 outline-none"
+                style={{ zIndex: 10 }}
+                tabIndex={-1}
+                role="img"
+                aria-label="Interactive game world. Use arrow keys to move and space to jump, or tab to individual sections below."
+            />
+
+            {/* Accessible overlay: one real, focusable button per section,
+                positioned exactly over its tulip on the canvas. Invisible
+                but present in the DOM and accessibility tree. */}
+            <div ref={overlayRef} aria-hidden={false}>
+                {sections.map((sec, i) => {
+                    const pos = boxPositions[i];
+                    if (!pos) return null;
+                    return (
+                        <button
+                            key={sec.id}
+                            type="button"
+                            aria-label={`Go to ${sec.label} section`}
+                            onClick={() => handleSectionHit(sec.id, sec.label)}
+                            style={{
+                                position: "fixed",
+                                left: pos.sx,
+                                top: pos.sy,
+                                width: pos.tW,
+                                height: pos.tH,
+                                zIndex: 20,
+                                opacity: 0,
+                                cursor: "pointer",
+                            }}
+                        />
+                    );
+                })}
+            </div>
+
+            {/* Plain list version of the same sections, revealed via the
+                skip link — the simplest possible accessible path. */}
+            <nav
+                id="section-list"
+                aria-label="Sections"
+                style={skipExpanded ? undefined : srOnlyStyle}
+            >
+                <ul>
+                    {sections.map((sec) => (
+                        <li key={sec.id}>
+                            <a
+                                href={`#${sec.id}`}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleSectionHit(sec.id, sec.label);
+                                }}
+                            >
+                                {sec.label}
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </nav>
+
+            {/* Live region: announces section activation to screen readers,
+                whichever path triggered it (collision, tap, or overlay button). */}
+            <div aria-live="polite" style={srOnlyStyle}>
+                {announcement}
+            </div>
+        </>
     );
 }
